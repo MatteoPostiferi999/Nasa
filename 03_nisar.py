@@ -18,6 +18,13 @@ from config import BBOX, DIRS, NISAR_START, bbox_wkt
 OUT = DIRS["nisar"]
 
 
+def h5_bytes(b):
+    """NISAR 'bytes' is {filename: {"bytes": n, "format": ...}} (h5 + browse PNGs)."""
+    if isinstance(b, dict):
+        return sum(v.get("bytes", 0) for k, v in b.items() if k.endswith(".h5"))
+    return b or 0
+
+
 def search():
     import asf_search as asf
     res = asf.geo_search(dataset="NISAR", processingLevel=["GUNW", "GCOV"],
@@ -29,7 +36,8 @@ def search():
              "path": p.properties.get("pathNumber"),
              "frame": p.properties.get("frameNumber"),
              "direction": p.properties.get("flightDirection"),
-             "mb": round((p.properties.get("bytes") or 0) / 1e6)} for p in res]
+             "mb": round(h5_bytes(p.properties.get("bytes")) / 1e6)}
+            for p in res]
     df = pd.DataFrame(rows).sort_values("start")
     df.to_csv(OUT / "nisar_products.csv", index=False)
     print(df.groupby(["type", "path", "direction"]).size().to_string())
