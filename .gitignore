@@ -1,0 +1,10 @@
+data/
+.env
+.netrc
+__pycache__/
+*.h5
+*.zip
+.venv/
+*.tif
+*.nc
+*.csv
