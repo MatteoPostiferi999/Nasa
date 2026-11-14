@@ -20,7 +20,10 @@ POINTS = {
     "talnakh": (69.49, 88.39),
     # Placeholders: pick real control sites from DEM + land cover (step 05).
     "tundra_control": (69.42, 87.70),
-    "plateau_reference": (69.30, 88.35),
+    # Largest bare-rock patch of ref_candidate_v2 (step 08): Kharaelakh
+    # plateau NE of Talnakh, 730 m, 6.4 km from OSM industrial/quarry.
+    # At the east edge of BBOX: see README (extend BBOX east).
+    "plateau_reference": (69.4839, 88.6372),
 }
 
 # ------------------------------------------------------------------ periods

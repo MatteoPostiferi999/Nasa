@@ -6,6 +6,7 @@ better than Sentinel-1 C-band: the key cross-check for the InSAR result.
 
     python 03_nisar.py search                      # list GUNW + GCOV, no login
     python 03_nisar.py download --type GUNW --max 3
+    python 03_nisar.py download --type GUNW --match _111_A_037_ --match 20260621T
     python 03_nisar.py subset                      # crop .h5 to AOI -> small .nc
 Full frames are large (GB). 'subset --delete-full' removes the originals.
 """
@@ -44,11 +45,15 @@ def search():
     print(f"\n{len(df)} products -> {OUT / 'nisar_products.csv'}")
 
 
-def download(ptype, n):
+def download(ptype, n, match=None):
     import asf_search as asf
     from auth import asf_session
     df = pd.read_csv(OUT / "nisar_products.csv")
-    df = df[df["type"].str.contains(ptype, na=False)].head(n)
+    df = df[df["type"].str.contains(ptype, na=False)]
+    if match:  # every substring must appear in the file name
+        for m in match:
+            df = df[df["file"].str.contains(m, regex=False)]
+    df = df.head(n)
     print(f"Downloading {len(df)} {ptype} files (~{df.mb.sum()} MB)")
     asf.download_urls(df.url.tolist(), str(OUT), session=asf_session(),
                       processes=2)
@@ -107,12 +112,14 @@ def main():
     ap.add_argument("cmd", choices=["search", "download", "subset"])
     ap.add_argument("--type", default="GUNW", choices=["GUNW", "GCOV"])
     ap.add_argument("--max", type=int, default=3)
+    ap.add_argument("--match", action="append",
+                    help="substring the file name must contain (repeatable)")
     ap.add_argument("--delete-full", action="store_true")
     a = ap.parse_args()
     if a.cmd == "search":
         search()
     elif a.cmd == "download":
-        download(a.type, a.max)
+        download(a.type, a.max, a.match)
     else:
         for h5 in sorted(OUT.glob("*.h5")):
             if crop_h5(h5) and a.delete_full:

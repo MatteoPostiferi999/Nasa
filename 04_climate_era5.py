@@ -17,7 +17,11 @@ from config import DIRS, POINTS
 
 URL = "https://archive-api.open-meteo.com/v1/archive"
 START, END = "2015-01-01", pd.Timestamp.today().strftime("%Y-%m-%d")
-DAILY = ["temperature_2m_mean", "snowfall_sum"]
+# snowfall_sum is not provided for models=era5_land (all null): use snow_depth.
+DAILY = ["temperature_2m_mean"]
+# Soil temperature is kept for reference only: ERA5-Land gives a positive
+# mean at 1-2.5 m in continuous permafrost (known bias). NOT USABLE as
+# evidence of ground warming; use ESA CCI Permafrost (step 07).
 HOURLY = ["soil_temperature_100_to_255cm", "snow_depth"]
 # ERA5-Land cells are ~9 km: they give the regional forcing, not
 # site-level differences. Three points (lowland, tundra, plateau) are enough.
@@ -73,11 +77,12 @@ def annual(df):
         "fdd": g["temperature_2m_mean"].apply(lambda s: -s.clip(upper=0).sum()),
         "soil_100_255_mean_c": g["soil_temperature_100_to_255cm"].mean(),
         "soil_100_255_max_c": g["soil_temperature_100_to_255cm"].max(),
-        "snowfall_cm": g["snowfall_sum"].sum(),
+        "snow_depth_max_m": g["snow_depth"].max(),
         "days": g.size(),
     })
+    out["complete_year"] = out["days"] >= 365
     out["thaw_onset"] = [thaw_onset(t[t.index.year == y]) for y in out.index]
-    num = out.columns.drop("thaw_onset")
+    num = out.columns.drop(["thaw_onset", "complete_year"])
     out[num] = out[num].round(2)
     return out
 
