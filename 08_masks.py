@@ -187,6 +187,9 @@ def main():
     ZDIR.mkdir(exist_ok=True)
     write(ZDIR / "zones_utm30.tif", zones, prof)
     write(ZDIR / "ref_patches_utm30.tif", ref_patches, prof)
+    # all bedrock candidates (any longitude): fallback reference for products
+    # that do not cover the chosen patches (e.g. NISAR track 6 DESC)
+    write(ZDIR / "ref_candidates_utm30.tif", ref_all, prof)
 
     pts = {ZONES[c]: centre_point(zones == c, lon, lat) for c in ZONES if (zones == c).any()}
     for i in range(1, ref_patches.max() + 1):
