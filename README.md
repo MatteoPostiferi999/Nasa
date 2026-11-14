@@ -70,6 +70,25 @@ python 02_s1_hyp3.py status --path P       # wait until SUCCEEDED (~1 h)
 python 02_s1_hyp3.py download --path P
 ```
 
+## v0 analysis (one command)
+
+```bash
+python 02_s1_hyp3.py download --path 136     # after jobs SUCCEEDED
+python 03_nisar.py download --match _111_A_037_ --match SH_20260621T --max 1   # x4
+./run_v0.sh                # 09 time series -> 10 NISAR -> 11 analysis -> 12 web
+./run_v0.sh --synthetic    # same chain on synthetic data with a known signal
+```
+
+| # | Script | Output |
+|---|---|---|
+| 09 | `09_timeseries.py` | numpy SBAS per summer -> `data/ts/s1_<year>_{los,vert}.tif` |
+| 10 | `10_nisar.py` | NISAR LOS per pair, asc/desc -> vertical + east |
+| 11 | `11_analysis.py` | zone x date table, sqrt(TDD) fits, comparisons, figures |
+| 12 | `12_export_web.py` | `outputs/web/`: COGs (EPSG:4326), zones.geojson, CSV, data contract |
+
+MintPy was not used for v0: a small least-squares SBAS is enough for
+12/24-day summer networks and is verified end-to-end on synthetic data.
+
 ## Before analysis
 
 - `config.py`: the HPP-3 tank location differs between sources (two points
