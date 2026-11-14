@@ -25,7 +25,8 @@ DAILY = ["temperature_2m_mean"]
 HOURLY = ["soil_temperature_100_to_255cm", "snow_depth"]
 # ERA5-Land cells are ~9 km: they give the regional forcing, not
 # site-level differences. Three points (lowland, tundra, plateau) are enough.
-CLIMATE_POINTS = ["norilsk_centre", "tundra_control", "plateau_reference"]
+CLIMATE_POINTS = ["norilsk_centre", "control_NW", "control_SE",
+                  "plateau_reference"]
 OUT = DIRS["climate"]
 
 

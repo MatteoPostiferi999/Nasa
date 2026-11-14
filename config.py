@@ -4,8 +4,9 @@ from pathlib import Path
 # ---------------------------------------------------------------- study area
 # Bounding box (lon_min, lat_min, lon_max, lat_max), WGS84.
 # Covers Norilsk city, Talnakh (N), Kayerkan + HPP-3 (W), Nadezhda plant,
-# surrounding tundra and the edge of the plateau (bedrock reference).
-BBOX = (87.55, 69.20, 88.65, 69.58)
+# surrounding tundra and the Kharaelakh plateau NE of Talnakh (bedrock
+# reference; BBOX extended east to 88.90 E for it).
+BBOX = (87.55, 69.20, 88.90, 69.58)
 
 # Metric CRS for derived rasters (slope etc.): UTM 45N covers 84-90 E.
 UTM_EPSG = 32645
@@ -18,12 +19,17 @@ POINTS = {
     "hpp3_tank_a": (69.3278, 87.9644),
     "hpp3_tank_b": (69.3794, 87.7444),
     "talnakh": (69.49, 88.39),
-    # Placeholders: pick real control sites from DEM + land cover (step 05).
-    "tundra_control": (69.42, 87.70),
-    # Largest bare-rock patch of ref_candidate_v2 (step 08): Kharaelakh
-    # plateau NE of Talnakh, 730 m, 6.4 km from OSM industrial/quarry.
-    # At the east edge of BBOX: see README (extend BBOX east).
-    "plateau_reference": (69.4839, 88.6372),
+    # TPP-3 (OSM way/525598517 centroid): centre of the "accident" zone.
+    "tpp3_accident": (69.3227, 87.9499),
+    # Zone points from step 08 (zones v3): centre of the largest patch.
+    "control_NW": (69.4467, 87.6366),
+    "control_SE": (69.2301, 88.5044),
+    # Kharaelakh plateau bedrock reference patches (step 08), east of 88.60 E,
+    # outside the mine-shaft hulls + 3 km. plateau_reference = ref_1.
+    "plateau_reference": (69.4955, 88.7356),
+    "ref_1": (69.4955, 88.7356),
+    "ref_2": (69.4849, 88.6588),
+    "ref_3": (69.5122, 88.6786),
 }
 
 # ------------------------------------------------------------------ periods

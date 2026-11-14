@@ -5,7 +5,8 @@ not "built-up". OSM land-use polygons fill that gap: they are excluded
 from both the InSAR reference and the tundra control masks (step 08).
 Ways and multipolygon relations (outer minus inner rings) are used.
 
-    python 06_osm_infrastructure.py            -> osm_landuse.geojson + mask
+    python 06_osm_infrastructure.py            -> osm_landuse.geojson, masks,
+                                                  osm_mineshafts.geojson
     python 06_osm_infrastructure.py --tanks    -> storage tanks / power plants
 """
 import argparse
@@ -17,7 +18,7 @@ import requests
 from pyproj import Transformer
 from rasterio.features import rasterize
 from shapely.geometry import LineString, Point, Polygon, mapping
-from shapely.ops import polygonize, transform, unary_union
+from shapely.ops import polygonize, transform, unary_union  # noqa: F401
 
 from config import BBOX, DIRS, UTM_EPSG
 
@@ -34,6 +35,11 @@ Q_TANKS = f"""
 [out:json][timeout:300];
 (nwr["man_made"="storage_tank"]({s},{w},{n},{e});
  nwr["power"="plant"]({s},{w},{n},{e}););
+out center tags;
+"""
+Q_MINES = f"""
+[out:json][timeout:300];
+nwr["man_made"="mineshaft"]({s},{w},{n},{e});
 out center tags;
 """
 BUFFER_M = 100  # ~2-3 InSAR pixels: edges, haul roads, misregistration
@@ -90,6 +96,12 @@ def landuse():
     prof.update(dtype="uint8", nodata=None)
     with rasterio.open(DIRS["osm"] / "osm_landuse_mask.tif", "w", **prof) as d:
         d.write(mask, 1)
+    # unbuffered version: zone statistics (industrial zone) use this one
+    core = (rasterize([(transform(to_utm, g), 1) for g in geoms], out_shape=shape,
+                      transform=tr_px, dtype="uint8")
+            if geoms else np.zeros(shape, "uint8"))
+    with rasterio.open(DIRS["osm"] / "osm_landuse_core.tif", "w", **prof) as d:
+        d.write(core, 1)
     area = {}
     for f, g in zip(feats, utm):
         k = f["properties"]["landuse"]
@@ -99,9 +111,9 @@ def landuse():
     print(f"mask: {mask.sum() * 0.03 ** 2:.1f} km2 (overlaps merged)")
 
 
-def tanks():
+def points(query, fname):
     feats = []
-    for el in overpass(Q_TANKS):
+    for el in overpass(query):
         c = el.get("center") or {"lat": el.get("lat"), "lon": el.get("lon")}
         if c["lat"] is None:
             continue
@@ -109,12 +121,17 @@ def tanks():
         feats.append({"type": "Feature",
                       "geometry": mapping(Point(c["lon"], c["lat"])),
                       "properties": {"osm_id": f"{el['type']}/{el['id']}", **tags}})
-    out = DIRS["osm"] / "osm_tanks_plants.geojson"
+    out = DIRS["osm"] / fname
     out.write_text(json.dumps({"type": "FeatureCollection", "features": feats}))
-    print(f"{len(feats)} tanks/plants -> {out.name}")
+    print(f"{len(feats)} features -> {out.name}")
 
 
 if __name__ == "__main__":
     ap = argparse.ArgumentParser()
     ap.add_argument("--tanks", action="store_true")
-    tanks() if ap.parse_args().tanks else landuse()
+    if ap.parse_args().tanks:
+        points(Q_TANKS, "osm_tanks_plants.geojson")
+    else:
+        landuse()
+        # underground mines (Talnakh): shafts outline the mined area
+        points(Q_MINES, "osm_mineshafts.geojson")
