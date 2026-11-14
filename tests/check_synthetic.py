@@ -21,7 +21,8 @@ print(fits[["zone", "summer", "b_true", "b", "se_b", "err", "r2"]].round(3).to_s
 # differences (what the hypothesis test uses) cancel it: tight tolerance.
 ok = (fits.err.abs() < 0.35).all()
 comp = pd.read_csv(OUTPUTS / "zone_comparisons.csv")
-comp["diff_true"] = comp.zone_a.map(B) - comp.zone_b.map(B)
+truth = dict(B, controls=(B["control_NW"] + B["control_SE"]) / 2)
+comp["diff_true"] = comp.zone_a.map(truth) - comp.zone_b.map(truth)
 comp["err"] = comp.diff_b - comp.diff_true
 print(comp[["summer", "zone_a", "zone_b", "diff_true", "diff_b", "err"]].round(3).to_string(index=False))
 big = ~comp.zone_a.isin(["urban", "accident"])   # small/fragmented zones blur at 40 m

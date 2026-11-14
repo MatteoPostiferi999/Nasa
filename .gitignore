@@ -1,4 +1,4 @@
-data/
+/data/
 .env
 .netrc
 __pycache__/
@@ -8,3 +8,4 @@ __pycache__/
 *.tif
 *.nc
 *.csv
+.gstack/

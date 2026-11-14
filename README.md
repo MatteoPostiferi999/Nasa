@@ -1,4 +1,9 @@
-# Norilsk permafrost — data download (v0)
+# Norilsk permafrost — Sentinel-1 + NISAR (v0)
+
+- **Website**: https://matteopostiferi999.github.io/Nasa/ (source in `docs/`, data built by `13_build_site.py`)
+- **Findings and limits**: [RESULTS.md](RESULTS.md)
+- **Rerun everything**: `./run_v0.sh` (after downloads), `./run_v0.sh --synthetic` (test, no login)
+
 
 Question: is the ground under Norilsk moving in a widespread way because of
 thaw (summers 2017–2026)? Three hypotheses, each with an observable signature:
@@ -56,7 +61,7 @@ machine urs.earthdata.nasa.gov login YOUR_USER password YOUR_PASS
 | 05 | `05_dem_landcover.py` | Copernicus DEM 30 m, slope, WorldCover, reference/control masks | no | ~300 MB |
 | 06 | `06_osm_infrastructure.py [--tanks]` | OSM landuse=industrial/quarry/landfill -> mask (+100 m); tanks/plants | no | GeoJSON + tif |
 | 07 | `07_cci_permafrost.py` | ESA CCI ground temperature + active layer (2015–2023): **only ground-temperature source** | no | cropped NetCDF |
-| 08 | `08_masks.py` | v2 reference + tundra-control masks (needs 05, 06) | no | tif + PNG |
+| 08 | `08_masks.py` | zones v3: reference patches, industrial, TPP-3, urban, tundra NW/SE (needs 05, 06) | no | tif + PNG |
 | – | `quicklook.py`, `tank_amplitude.py` | QA plots; tank-location check from S1 amplitude | no | PNG |
 
 Suggested order: 04, 05, 06, 08, 07 (no login) → 01 → 02 `plan` →
@@ -85,6 +90,7 @@ python 03_nisar.py download --match _111_A_037_ --match SH_20260621T --max 1   #
 | 10 | `10_nisar.py` | NISAR LOS per pair, asc/desc -> vertical + east |
 | 11 | `11_analysis.py` | zone x date table, sqrt(TDD) fits, comparisons, figures |
 | 12 | `12_export_web.py` | `outputs/web/`: COGs (EPSG:4326), zones.geojson, CSV, data contract |
+| 13 | `13_build_site.py` | `docs/data/`: website overlays (WebP), site.json, verdict |
 
 MintPy was not used for v0: a small least-squares SBAS is enough for
 12/24-day summer networks and is verified end-to-end on synthetic data.

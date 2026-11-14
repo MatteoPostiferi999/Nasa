@@ -66,8 +66,10 @@ def atm(shape):
 
 def main(out):
     out = Path(out)
-    for k in ("dem", "landcover", "osm", "zones", "climate"):
+    for k in ("dem", "landcover", "osm", "zones", "climate", "s1"):
         (out / k).parent.mkdir(parents=True, exist_ok=True)
+        if (out / k).is_dir() and not (out / k).is_symlink() and not any((out / k).iterdir()):
+            (out / k).rmdir()
         if not (out / k).exists():
             (out / k).symlink_to(REAL / k)
     with rasterio.open(REAL / "zones" / "zones_utm30.tif") as s:

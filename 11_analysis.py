@@ -13,8 +13,10 @@ bound: spatially correlated atmospheric noise is not in it). The per-date
 zone uncertainty is the spatial std / sqrt(n_eff), n_eff = n_px / PX_PER_IND
 (neighbouring pixels are not independent).
 
-Comparisons: industrial vs each control, control_NW vs control_SE,
-difference of b with combined standard error (z-score).
+Comparisons: PAIRED fit of the per-date difference series (zone_a - zone_b,
+or zone - mean of the two controls) against sqrt(TDD): the common-mode
+term shared by all lowland zones (troposphere relative to the high
+reference) cancels. Also writes disp_rel_mm (zone minus mean of controls).
 
 Gap model (PREDICTION, flagged): per zone, b averaged over summers,
 predicted end-of-summer subsidence for 2022-2024 from ERA5 TDD;
@@ -109,18 +111,46 @@ def main():
     fits = pd.DataFrame(fits)
     fits.round(4).to_csv(OUTPUTS / "zone_fits.csv", index=False)
 
+    # Zone comparisons: PAIRED fit on the per-date difference series. The
+    # lowland zones share a large common-mode term (troposphere between the
+    # ~80 m lowland and the ~650 m reference), which cancels in a difference
+    # but not in two independently fitted slopes.
     comps = []
-    for yr, g in fits.groupby("summer"):
-        g = g.set_index("zone")
+    for yr, g in tab.groupby("summer"):
+        piv = g.pivot_table(index="date", columns="zone", values="disp_mm")
+        sq = g.pivot_table(index="date", columns="zone", values="sqrt_tdd")
         for a, b in [("industrial", "control_NW"), ("industrial", "control_SE"),
-                     ("accident", "control_NW"), ("accident", "control_SE"),
-                     ("urban", "control_NW"), ("urban", "control_SE"),
+                     ("industrial", "controls"),
+                     ("accident", "controls"), ("urban", "controls"),
                      ("control_NW", "control_SE")]:
-            if a in g.index and b in g.index:
-                d = g.at[a, "b"] - g.at[b, "b"]
-                se = np.hypot(g.at[a, "se_b"], g.at[b, "se_b"])
-                comps.append({"summer": yr, "zone_a": a, "zone_b": b, "diff_b": d,
-                              "se": se, "z": d / se if se > 0 else np.nan})
+            def series(z):
+                if z == "controls":
+                    if {"control_NW", "control_SE"} <= set(piv):
+                        return (piv[["control_NW", "control_SE"]].mean(axis=1),
+                                sq[["control_NW", "control_SE"]].mean(axis=1))
+                    return None, None
+                return (piv[z], sq[z]) if z in piv else (None, None)
+            (da, xa), (db, xb) = series(a), series(b)
+            if da is None or db is None:
+                continue
+            r = fit(((xa + xb) / 2).values, (da - db).values)
+            end = (da - db).dropna()
+            comps.append({"summer": yr, "zone_a": a, "zone_b": b, "diff_b": r["b"],
+                          "se": r["se_b"], "z": r["b"] / r["se_b"] if r["se_b"] > 0 else np.nan,
+                          "r2": r["r2"], "n": r["n"],
+                          "seasonal_diff_mm": float(end.iloc[-1]) if len(end) else np.nan})
+    # zone series relative to the mean of the two tundra controls (web)
+    rel = []
+    for (yr, d), g in tab.groupby(["summer", "date"]):
+        g = g.set_index("zone")
+        if {"control_NW", "control_SE"} <= set(g.index):
+            c = g.loc[["control_NW", "control_SE"], "disp_mm"].mean()
+            for zn in g.index:
+                rel.append({"zone": zn, "summer": yr, "date": d, "disp_rel_mm": g.at[zn, "disp_mm"] - c})
+    if rel:
+        tab = tab.merge(pd.DataFrame(rel), on=["zone", "summer", "date"], how="left")
+        tab[["zone", "summer", "date", "disp_mm", "disp_rel_mm", "disp_median_mm", "se_mm",
+             "n_px", "tdd_cum"]].to_csv(OUTPUTS / "web" / "zone_timeseries.csv", index=False)
     comps = pd.DataFrame(comps)
     comps.round(4).to_csv(OUTPUTS / "zone_comparisons.csv", index=False)
 

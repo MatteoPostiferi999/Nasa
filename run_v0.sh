@@ -18,4 +18,6 @@ $PY 12_export_web.py
 if [[ "${1:-}" == "--synthetic" ]]; then
   $PY tests/check_synthetic.py
   echo "synthetic outputs: $NORILSK_OUT"
+else
+  $PY 13_build_site.py      # website data (docs/), real data only
 fi

@@ -69,7 +69,7 @@ def zones_files():
             feats.setdefault(int(val), []).append(shape(geom))
     fc = {"type": "FeatureCollection", "features": [
         {"type": "Feature", "properties": {"code": c, "zone": ZONE_NAMES[c]},
-         "geometry": mapping(unary_union(g).simplify(0.0002))}
+         "geometry": mapping(unary_union(g).buffer(0.0003).buffer(-0.0003).simplify(0.0004))}
         for c, g in sorted(feats.items())]}
     (WEB / "zones.geojson").write_text(json.dumps(fc))
 

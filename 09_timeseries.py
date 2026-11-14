@@ -5,10 +5,15 @@ Input: unzipped HyP3 INSAR_ISCE_MULTI_BURST products in data/hyp3/norilsk_p136/
 Small least-squares SBAS in numpy (MintPy not used for v0):
 
   1. every pair is reprojected onto the 30 m analysis grid (step 05)
-  2. per summer, per pixel: solve A x = b, x = cumulative LOS displacement at
-     each date relative to the first date (12/24-day network from step 02).
-     Pixels with mean coherence < COH_MIN, or any missing pair, are masked.
-  3. reference: per date, subtract the mean over all reference patches.
+  2. each pair is re-referenced to the mean of the plateau patches (HyP3
+     pairs each have their own arbitrary reference point); pairs where the
+     reference is not measurable (< REF_COV_MIN usable, e.g. snow on the
+     plateau in late September) are dropped, with any date left isolated.
+  3. per summer, per pixel: solve A x = b, x = cumulative LOS displacement at
+     each date relative to the first date. A pair is usable at a pixel if
+     finite and coherence >= COH_MIN; pixels are solved on their own usable
+     sub-network if it still connects all dates.
+     The reference is re-applied per date (mean of the patches).
      Each patch is also compared with the others (relative stability).
   4. LOS -> vertical: d_v = d_los / cos(incidence), only where slope < 5 deg;
      steeper pixels are kept in the LOS stack but NaN in the vertical one.
@@ -35,6 +40,7 @@ from common import grid, pair_dates, save_json, to_grid, write_stack, zones
 from config import DIRS, S1_WAVELENGTH
 
 COH_MIN = 0.3
+REF_COV_MIN = 0.5   # min fraction of reference pixels usable in a pair
 SLOPE_MAX = 5.0
 PRODUCTS = DIRS["hyp3"] / "norilsk_p136"
 
@@ -58,27 +64,60 @@ def load_pair(unw, prof):
                 a[a == s.nodata] = np.nan
             if key == "unw_phase":
                 a[a == 0] = np.nan          # HyP3 uses 0 outside valid data
+            if key == "unw_phase" and Path(f"{stem}_conncomp.tif").exists():
+                with rasterio.open(f"{stem}_conncomp.tif") as cc:
+                    a[cc.read(1) == 0] = np.nan     # not unwrapped
             layers[key] = to_grid(a, s.transform, s.crs, prof)
     return layers
 
 
-def invert(dates, pairs, b, valid):
-    """Least squares SBAS. b: (n_pairs, n_pix). Returns (n_dates, n_pix), rms."""
+def design(dates, pairs):
     idx = {d: i for i, d in enumerate(dates)}
     A = np.zeros((len(pairs), len(dates) - 1))
     for k, (r, s) in enumerate(pairs):
         if idx[r] > 0:
             A[k, idx[r] - 1] = -1
         A[k, idx[s] - 1] = 1
-    if np.linalg.matrix_rank(A) < len(dates) - 1:
-        raise SystemExit(f"network not connected for {dates[0][:4]}: add pairs")
+    return A
+
+
+def connected_dates(pairs):
+    """Dates of the largest connected component of the pair graph."""
+    parent = {}
+    find = lambda d: d if parent.setdefault(d, d) == d else find(parent[d])
+    for r, s in pairs:
+        parent[find(r)] = find(s)
+    groups = defaultdict(set)
+    for d in list(parent):
+        groups[find(d)].add(d)
+    return sorted(max(groups.values(), key=len))
+
+
+def invert(dates, pairs, b, ok):
+    """Per-pixel least-squares SBAS with missing pairs.
+
+    b: (n_pairs, n_pix) LOS mm; ok: same shape, True where the pair is usable
+    at that pixel. Pixels are grouped by their pattern of usable pairs; each
+    group is solved if its sub-network still connects all dates.
+    Returns x (n_dates, n_pix) relative to the first date, rms (mm)."""
+    A = design(dates, pairs)
+    n = len(dates) - 1
     x = np.full((len(dates), b.shape[1]), np.nan, "float32")
-    sol, *_ = np.linalg.lstsq(A, b[:, valid], rcond=None)
-    x[0, valid] = 0
-    x[1:, valid] = sol
-    res = A @ sol - b[:, valid]
-    rms = float(np.sqrt(np.mean(res ** 2))) if res.size else float("nan")
-    return x, rms
+    weights = (1 << np.arange(len(pairs), dtype=np.int64))[:, None]
+    code = (ok.astype(np.int64) * weights).sum(axis=0)
+    res2, nres = 0.0, 0
+    for c in np.unique(code[code > 0]):
+        sel = np.flatnonzero(code == c)
+        rows = np.flatnonzero((c >> np.arange(len(pairs))) & 1)
+        As = A[rows]
+        if len(rows) < n or np.linalg.matrix_rank(As) < n:
+            continue
+        sol, *_ = np.linalg.lstsq(As, b[np.ix_(rows, sel)], rcond=None)
+        x[0, sel] = 0
+        x[1:, sel] = sol
+        r = As @ sol - b[np.ix_(rows, sel)]
+        res2 += float(np.sum(r ** 2)); nres += r.size
+    return x, (np.sqrt(res2 / nres) if nres else float("nan"))
 
 
 def reference_stats(stack, ref_patches):
@@ -122,9 +161,32 @@ def main():
         b = np.array(b).reshape(len(items), -1)
         coh = np.array(coh).reshape(len(items), -1)
         inc = np.nanmedian(np.array(inc), axis=0)
-        valid = np.all(np.isfinite(b), axis=0) & (np.nanmean(coh, axis=0) >= COH_MIN)
-        los, rms = invert(dates, [(r, s) for r, s, _ in items], b, valid)
+        ref_flat = (ref_patches > 0).ravel()
+
+        # 1. each HyP3 pair has its own arbitrary reference point: re-reference
+        #    every pair to the plateau patches BEFORE inversion; drop pairs where
+        #    the reference is not measurable (e.g. early snow on the plateau)
+        pairs_all = [(r, s) for r, s, _ in items]
+        keep = []
+        for k in range(len(items)):
+            refv = b[k, ref_flat]
+            cov = np.mean(np.isfinite(refv) & (coh[k, ref_flat] >= COH_MIN))
+            if cov < REF_COV_MIN:
+                print(f"  drop {pairs_all[k][0]}-{pairs_all[k][1]}: reference coverage {cov:.0%}")
+                continue
+            b[k] -= np.nanmean(refv)
+            keep.append(k)
+        dates = connected_dates([pairs_all[k] for k in keep])
+        keep = [k for k in keep if pairs_all[k][0] in dates and pairs_all[k][1] in dates]
+        pairs = [pairs_all[k] for k in keep]
+        b, coh = b[keep], coh[keep]
+
+        # 2. per-pixel usable pairs; per-pixel SBAS on the connected sub-network
+        ok = np.isfinite(b) & (coh >= COH_MIN)
+        los, rms = invert(dates, pairs, b, ok)
+        valid = np.isfinite(los[-1])
         los = los.reshape(len(dates), *shape)
+        items = [it for k, it in enumerate(items) if k in keep]
 
         # spatial reference: mean of all reference patches, per date
         ref_mask = ref_patches > 0
