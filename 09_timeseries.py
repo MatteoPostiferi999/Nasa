@@ -14,6 +14,12 @@ Small least-squares SBAS in numpy (MintPy not used for v0):
      finite and coherence >= COH_MIN; pixels are solved on their own usable
      sub-network if it still connects all dates.
      The reference is re-applied per date (mean of the patches).
+  1b. (--tropo, default height_ramp) empirical stratified troposphere: per
+     pair, fit  b = c + k*h (+ planar ramp)  on coherent pixels between
+     TROPO_HMIN and TROPO_HMAX m (plateau flanks and hills: bedrock, little
+     thaw), subtract k*h (+ ramp) everywhere. The lowland (50-150 m) is NOT
+     used in the fit, so lowland deformation cannot leak into k; the cost is
+     a short extrapolation in height (250 -> 80 m).
      Each patch is also compared with the others (relative stability).
   4. LOS -> vertical: d_v = d_los / cos(incidence), only where slope < 5 deg;
      steeper pixels are kept in the LOS stack but NaN in the vertical one.
@@ -36,13 +42,14 @@ from pathlib import Path
 import numpy as np
 import rasterio
 
-from common import grid, pair_dates, save_json, to_grid, write_stack, zones
+from common import grid, pair_dates, read, save_json, to_grid, write_stack, zones
 from config import DIRS, S1_WAVELENGTH
 
 COH_MIN = 0.3
 REF_COV_MIN = 0.5   # min fraction of reference pixels usable in a pair
 SLOPE_MAX = 5.0
 PRODUCTS = DIRS["hyp3"] / "norilsk_p136"
+TROPO_HMIN, TROPO_HMAX = 250.0, 1100.0
 
 
 def find_pairs():
@@ -69,6 +76,20 @@ def load_pair(unw, prof):
                     a[cc.read(1) == 0] = np.nan     # not unwrapped
             layers[key] = to_grid(a, s.transform, s.crs, prof)
     return layers
+
+
+def tropo_fit(b, ok, dem, xx, yy, mode):
+    """Per-pair empirical troposphere (see docstring). Returns the model to
+    subtract (n_pairs, n_pix) and the height coefficients (mm/km)."""
+    fit_px = (dem >= TROPO_HMIN) & (dem <= TROPO_HMAX)
+    model, ks = np.zeros_like(b), []
+    for k in range(b.shape[0]):
+        m = ok[k] & fit_px
+        cols = [np.ones(m.sum()), dem[m]] + ([xx[m], yy[m]] if mode == "height_ramp" else [])
+        coef, *_ = np.linalg.lstsq(np.c_[tuple(cols)], b[k, m], rcond=None)
+        model[k] = coef[1] * dem + ((coef[2] * xx + coef[3] * yy) if mode == "height_ramp" else 0)
+        ks.append(round(float(coef[1]) * 1000, 1))
+    return model, ks
 
 
 def design(dates, pairs):
@@ -137,10 +158,13 @@ def reference_stats(stack, ref_patches):
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--years", type=int, nargs="+", default=[2020, 2025])
+    ap.add_argument("--tropo", choices=["none", "height", "height_ramp"], default="height_ramp")
     a = ap.parse_args()
     prof = grid()
     z, ref_patches, slope = zones()
     shape = (prof["height"], prof["width"])
+    dem = read(DIRS["dem"] / "dem_utm30.tif")[0].ravel()
+    yy, xx = [v.ravel() / 1000.0 for v in np.mgrid[0:shape[0], 0:shape[1]].astype("float32") * 30]
     DIRS["ts"].mkdir(parents=True, exist_ok=True)
     pairs_by_year = find_pairs()
     if not pairs_by_year:
@@ -162,6 +186,10 @@ def main():
         coh = np.array(coh).reshape(len(items), -1)
         inc = np.nanmedian(np.array(inc), axis=0)
         ref_flat = (ref_patches > 0).ravel()
+        tropo_k = None
+        if a.tropo != "none":
+            model, tropo_k = tropo_fit(b, np.isfinite(b) & (coh >= COH_MIN), dem, xx, yy, a.tropo)
+            b = b - model
 
         # 1. each HyP3 pair has its own arbitrary reference point: re-reference
         #    every pair to the plateau patches BEFORE inversion; drop pairs where
@@ -205,7 +233,8 @@ def main():
         meta = {"year": year, "dates": dates, "pairs": [(r, s) for r, s, _ in items],
                 "coh_min": COH_MIN, "slope_max_deg": SLOPE_MAX,
                 "valid_px": int(valid.sum()), "ref_px": n_ref,
-                "residual_rms_mm": round(rms, 2),
+                "residual_rms_mm": round(rms, 2), "tropo": a.tropo,
+                "tropo_k_mm_per_km": None if tropo_k is None else [tropo_k[k] for k in keep],
                 "incidence_median_deg": float(np.nanmedian(inc)),
                 "reference_patch_stability": stab,
                 "sign": "LOS + toward satellite; vertical + up (subsidence < 0)"}

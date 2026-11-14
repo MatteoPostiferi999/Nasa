@@ -33,7 +33,7 @@ function init(S) {
   safe(heroStats, "hero"); safe(timeline, "timeline");
   if (safe(mapInit, "map")) document.getElementById("map").innerHTML =
     `<p class="note" style="padding:24px">The interactive map needs WebGL, which this browser does not provide. The figures below still work.</p>`;
-  safe(results, "results"); safe(verdict, "verdict"); safe(nisar, "nisar");
+  safe(results, "results"); safe(local, "local"); safe(verdict, "verdict"); safe(nisar, "nisar");
   document.getElementById("generated").textContent = `Data build: ${S.generated}`;
   reveal();
 }
@@ -56,6 +56,8 @@ function heroStats(S) {
 function fitOf(S, zone, yr) { return S.fits.find((f) => f.zone === zone && +f.summer === +yr); }
 
 function headline(S) {
+  const L = S.local;
+  if (L) return { v: fmt(L.r_local, 2), small: "r", k: `correlation of local thaw subsidence between 2020 and 2025 (chance: ${fmt(L.r_null_shift_mean, 2)} ± ${fmt(L.r_null_shift_std, 2)})` };
   const V = S.verdict;
   if (!V || V.status !== "ready") return null;
   const n = V.n_summers, k = V.anthropogenic.yes;
@@ -141,9 +143,9 @@ function mapInit(S) {
   MAP.addControl(new maplibregl.ScaleControl({ unit: "metric" }), "bottom-left");
 
   const keys = Object.keys(S.overlays);
-  const order = ["s1_2020", "s1_2025", "nisar_late_vertical", "nisar_late_east", "nisar_early_vertical", "nisar_early_east"];
+  const order = ["local_persistent", "local_2020", "local_2025", "s1_2020", "s1_2025", "nisar_late_vertical", "nisar_late_east", "nisar_early_vertical", "nisar_early_east"];
   const ordered = order.filter((k) => keys.includes(k)).concat(keys.filter((k) => !order.includes(k)));
-  const short = { s1_2020: "S1 2020", s1_2025: "S1 2025", nisar_early_vertical: "NISAR early ↕", nisar_early_east: "NISAR early ↔",
+  const short = { local_persistent: "Repeats ★", local_2020: "Local 2020", local_2025: "Local 2025", s1_2020: "S1 2020", s1_2025: "S1 2025", nisar_early_vertical: "NISAR early ↕", nisar_early_east: "NISAR early ↔",
     nisar_late_vertical: "NISAR late ↕", nisar_late_east: "NISAR late ↔" };
   const seg = document.getElementById("layer-seg");
   seg.innerHTML = ordered.map((k, i) => `<button role="radio" aria-checked="${i === 0}" data-k="${k}">${short[k] || k}</button>`).join("");
@@ -385,6 +387,105 @@ function resultText(S) {
     "Subtracting the tundra removes it and leaves the question that matters. " + parts.join(" ");
 }
 
+/* ---------- local, reproducible signal ---------- */
+const LC_ORDER = ["herbaceous wetland", "moss and lichen", "grassland", "water edge", "tree cover", "bare / sparse", "built-up"];
+function local(S) {
+  const L = S.local; if (!L) { document.getElementById("local").hidden = true; return; }
+  const wet = L.landcover.find((r) => r.code === 90);
+  document.getElementById("local-stats").innerHTML = [
+    { v: fmt(L.r_local, 2), k: `pixel correlation of local thaw motion, 2020 vs 2025 (${L.n_independent.toLocaleString()} samples 150 m apart)` },
+    { v: `${fmt(L.r_null_shift_mean, 2)}<small> ± ${fmt(L.r_null_shift_std, 2)}</small>`, k: "same correlation when the 2025 map is shifted 6 km: what chance looks like" },
+    { v: `${fmt(L.hotspot_px_both / L.hotspot_px_expected_if_independent, 1)}×`, k: `more pixels sink by > 10 mm in both summers than if the summers were unrelated (${fmt(L.hotspot_area_km2, 0)} km²)` },
+    { v: `${fmt(wet.local_2020_mm)} / ${fmt(wet.local_2025_mm)}<small>mm</small>`, k: "wetland ground vs its 2 km surroundings, end of summer 2020 / 2025", hl: true }
+  ].map((t) => `<div class="stat ${t.hl ? "hl" : ""}"><div class="v">${t.v}</div><div class="k">${t.k}</div></div>`).join("");
+  localSeries(S); localLandcover(S); localFacilities(S);
+}
+
+function localSeries(S) {
+  const L = S.local, el = document.getElementById("chart-local-series"); el.innerHTML = "";
+  const yrs = Object.keys(L.series);
+  const W = 640, H = 360, m = { l: 48, r: 132, t: 30, b: 46 }, gap = 26;
+  const pw = (W - m.l - m.r - gap) / yrs.length;
+  const all = yrs.flatMap((y) => Object.values(L.series[y].by_class).flatMap((v) => v.map((d) => d - v[0])));
+  const y = d3.scaleLinear().domain(d3.extent(all.concat([0]))).nice().range([H - m.b, m.t]);
+  const svg = d3.select(el).append("svg").attr("viewBox", `0 0 ${W} ${H}`);
+  svg.append("text").attr("class", "ax-title").attr("transform", `translate(12,${(m.t + H - m.b) / 2}) rotate(-90)`).attr("text-anchor", "middle").text("motion vs 2 km surroundings (mm, + up)");
+  const endLabels = [];
+  yrs.forEach((yr, i) => {
+    const s = L.series[yr], x0 = m.l + i * (pw + gap);
+    const x = d3.scaleLinear().domain(d3.extent(s.sqrt_tdd)).nice().range([x0, x0 + pw]);
+    const g = svg.append("g");
+    g.append("g").attr("class", "grid").attr("transform", `translate(${x0},0)`).call(d3.axisLeft(y).ticks(5).tickSize(-pw).tickFormat(i ? "" : null));
+    g.append("g").attr("class", "axis").attr("transform", `translate(0,${H - m.b})`).call(d3.axisBottom(x).ticks(4));
+    g.append("line").attr("class", "zero").attr("x1", x0).attr("x2", x0 + pw).attr("y1", y(0)).attr("y2", y(0));
+    g.append("text").attr("x", x0).attr("y", 16).attr("fill", css("--ink")).attr("font-family", "Space Grotesk").attr("font-weight", 600).attr("font-size", 14).text(`Summer ${yr}`);
+    const cls = LC_ORDER.filter((c) => s.by_class[c]);
+    cls.slice().reverse().forEach((c) => {
+      const v = s.by_class[c].map((d) => d - s.by_class[c][0]), hl = c === "herbaceous wetland";
+      const pts = v.map((d, k) => [s.sqrt_tdd[k], d, s.dates[k]]);
+      g.append("path").datum(pts).attr("fill", "none").attr("stroke", hl ? css("--sub") : "#5b5f66").attr("stroke-width", hl ? 2.5 : 1.5).attr("opacity", hl ? 1 : 0.8)
+        .attr("d", d3.line().x((p) => x(p[0])).y((p) => y(p[1])));
+      g.selectAll(null).data(pts).join("circle").attr("cx", (p) => x(p[0])).attr("cy", (p) => y(p[1])).attr("r", hl ? 4.5 : 3)
+        .attr("fill", hl ? css("--sub") : "#5b5f66").attr("stroke", css("--card")).attr("stroke-width", 2)
+        .on("mousemove", (ev, p) => showTip(`<b>${c}</b> · ${p[2].slice(0, 4)}-${p[2].slice(4, 6)}-${p[2].slice(6)}<div class="tt-row"><span class="tt-k">vs surroundings</span><span>${fmt(p[1])} mm</span></div><div class="tt-row"><span class="tt-k">√TDD</span><span>${fmt(p[0])}</span></div>`, ev))
+        .on("mouseleave", hideTip);
+      if (i === yrs.length - 1) endLabels.push({ c, hl, y: y(v[v.length - 1]) });
+    });
+  });
+  endLabels.sort((a, b) => a.y - b.y);
+  for (let k = 1; k < endLabels.length; k++) if (endLabels[k].y - endLabels[k - 1].y < 13) endLabels[k].y = endLabels[k - 1].y + 13;
+  endLabels.forEach((l) => svg.append("text").attr("class", "dlabel").attr("x", W - m.r + 8).attr("y", l.y + 4)
+    .attr("fill", l.hl ? css("--ink") : css("--muted")).attr("font-weight", l.hl ? 600 : 400).text(l.c));
+  svg.append("text").attr("class", "ax-title").attr("x", (m.l + W - m.r) / 2).attr("y", H - 8).attr("text-anchor", "middle").text("√ cumulative thawing degree-days  (√°C·day)");
+}
+
+function localLandcover(S) {
+  const L = S.local, el = document.getElementById("chart-local-lc"); el.innerHTML = "";
+  const rows = LC_ORDER.map((c) => L.landcover.find((r) => r.class === c)).filter(Boolean);
+  const W = 460, rowH = 40, m = { l: 140, r: 20, t: 10, b: 62 }, H = m.t + m.b + rowH * rows.length;
+  const vals = rows.flatMap((r) => [r.local_2020_mm - 2 * r.se_2020, r.local_2020_mm + 2 * r.se_2020, r.local_2025_mm - 2 * r.se_2025, r.local_2025_mm + 2 * r.se_2025]).concat([0]);
+  const x = d3.scaleLinear().domain(d3.extent(vals)).nice().range([m.l, W - m.r]);
+  const svg = d3.select(el).append("svg").attr("viewBox", `0 0 ${W} ${H}`);
+  svg.append("g").attr("class", "grid").attr("transform", `translate(0,${H - m.b})`).call(d3.axisBottom(x).ticks(5).tickSize(-(H - m.t - m.b)));
+  svg.append("line").attr("class", "zero").attr("x1", x(0)).attr("x2", x(0)).attr("y1", m.t).attr("y2", H - m.b);
+  svg.append("text").attr("class", "ax-title").attr("x", (m.l + W - m.r) / 2).attr("y", H - m.b + 36).attr("text-anchor", "middle").text("end-of-summer motion vs surroundings (mm)  ← sinks more");
+  rows.forEach((r, i) => {
+    const cy = m.t + rowH * i + rowH / 2, hl = r.code === 90, col = hl ? css("--sub") : css("--ink-2");
+    svg.append("text").attr("x", m.l - 12).attr("y", cy + 4).attr("text-anchor", "end").attr("fill", hl ? css("--ink") : css("--ink-2")).attr("font-weight", hl ? 600 : 400).attr("font-size", 13).text(r.class);
+    [["2020", -7], ["2025", 7]].forEach(([yr, off], j) => {
+      const v = r[`local_${yr}_mm`], se = r[`se_${yr}`], yy = cy + off;
+      svg.append("line").attr("x1", x(v - 2 * se)).attr("x2", x(v + 2 * se)).attr("y1", yy).attr("y2", yy).attr("stroke", col).attr("stroke-width", 2).attr("opacity", 0.5);
+      const mk = j === 0 ? svg.append("circle").attr("r", 5).attr("cx", x(v)).attr("cy", yy)
+        : svg.append("rect").attr("width", 9).attr("height", 9).attr("rx", 2).attr("x", x(v) - 4.5).attr("y", yy - 4.5);
+      mk.attr("fill", col).attr("stroke", css("--card")).attr("stroke-width", 2)
+        .on("mousemove", (ev) => showTip(`<b>${r.class}</b> · ${yr}<div class="tt-row"><span class="tt-k">vs surroundings</span><span>${fmt(v)} ± ${fmt(2 * se)} mm</span></div><div class="tt-row"><span class="tt-k">area</span><span>${fmt(r.area_km2, 0)} km²</span></div><div class="tt-row"><span class="tt-k">sinks > 10 mm both summers</span><span>${fmt(100 * r.frac_hotspot)} %</span></div>`, ev))
+        .on("mouseleave", hideTip);
+    });
+  });
+  const lg = svg.append("g").attr("transform", `translate(${m.l},${H - 8})`);
+  lg.append("circle").attr("cy", -4).attr("r", 4.5).attr("fill", css("--ink-2"));
+  lg.append("text").attr("x", 10).attr("y", 0).attr("fill", css("--muted")).attr("font-size", 12).text("2020");
+  lg.append("rect").attr("x", 76).attr("y", -8).attr("width", 8).attr("height", 8).attr("rx", 2).attr("fill", css("--ink-2"));
+  lg.append("text").attr("x", 90).attr("y", 0).attr("fill", css("--muted")).attr("font-size", 12).text("2025   (±2σ)");
+}
+
+function localFacilities(S) {
+  const L = S.local, el = document.getElementById("local-fac");
+  const rows = L.facilities.slice().sort((a, b) => a.d_mean - b.d_mean);
+  const lu = Object.fromEntries(L.facilities_by_landuse.map((r) => [r.landuse, r]));
+  el.innerHTML = `<table><thead><tr><th>Site</th><th>Type</th><th>2020</th><th>2025</th><th></th></tr></thead><tbody>` +
+    rows.map((r) => `<tr data-lon="${r.lon}" data-lat="${r.lat}"><td>${r.label}</td><td class="muted">${r.landuse}</td><td>${r.d_2020 > 0 ? "+" : ""}${fmt(r.d_2020)}</td><td>${r.d_2025 > 0 ? "+" : ""}${fmt(r.d_2025)}</td>` +
+      `<td><span class="badge ${r.d_mean < 0 ? "sink" : "rise"}">${r.d_mean < 0 ? "sinks more" : "sinks less"}</span></td></tr>`).join("") + `</tbody></table>` +
+    `<p class="card-note">mm, end of summer, inside the site minus a 0.3–1.5 km ring around it. Listed: ${rows.length} of ${L.facilities_all_n} OSM sites where the difference has the same sign and exceeds 2σ in both summers (site-level correlation between summers r = ${fmt(L.facility_r, 2)}). ` +
+    `On average, industrial sites: ${fmt(lu.industrial?.d_2020)} / ${fmt(lu.industrial?.d_2025)} mm; landfills and tailings: ${fmt(lu.landfill?.d_2020)} / ${fmt(lu.landfill?.d_2025)} mm. Click a row to find it on the map.</p>`;
+  el.querySelectorAll("tr[data-lon]").forEach((tr) => tr.addEventListener("click", () => {
+    if (!MAP) return;
+    setLayer("local_persistent");
+    document.getElementById("explore").scrollIntoView({ behavior: "smooth" });
+    MAP.flyTo({ center: [+tr.dataset.lon, +tr.dataset.lat], zoom: 13, duration: 1400 });
+  }));
+}
+
 /* ---------- verdict ---------- */
 function verdict(S) {
   const V = S.verdict, grid = document.getElementById("verdict-grid");
@@ -398,20 +499,22 @@ function verdict(S) {
     return;
   }
   const n = V.n_summers;
-  const state = (c) => c.yes === n ? ["good", "✓ supported", css("--good"), 100]
+  const state = (c, k) => c.yes === n ? ["good", "✓ supported", css("--good"), 100]
+    : (k === "climatic" && V.climatic_local) ? ["warn", "◐ local evidence", css("--warning"), 50]
     : c.yes > 0 ? ["warn", "◐ partly", css("--warning"), 50]
     : c.untestable === n ? ["no", "? not testable yet", "#3a3f48", 0]
     : ["no", "✕ not supported", "#3a3f48", 0];
   grid.innerHTML = H.map((h) => {
-    const c = V[h.k], [cls, lab, col, w] = state(c);
-    const why = c.untestable === n ? "Absolute motion is dominated by atmosphere (σ too large); needs tropospheric correction."
+    const c = V[h.k], [cls, lab, col, w] = state(c, h.k);
+    const why = (h.k === "climatic" && V.climatic_local) ? "Absolute motion vs bedrock is still atmosphere-dominated, but ice-rich wetland ground sinks <strong>relative to its surroundings</strong> along the thaw curve in both summers (see “The pattern that repeats”)."
+      : c.untestable === n ? "Absolute motion is dominated by atmosphere (σ too large); needs tropospheric correction."
       : `Met in <strong>${c.yes} of ${n}</strong> summers.`;
     return `<div class="vcard"><div class="vh"><h4>${h.t}</h4><span class="badge ${cls}">${lab}</span></div>
       <div class="meter"><i data-w="${Math.max(w, 4)}" style="background:${col}"></i></div><p>${h.d} ${why}</p></div>`;
   }).join("");
   setTimeout(() => grid.querySelectorAll(".meter i").forEach((i) => (i.style.width = i.dataset.w + "%")), 300);
   document.querySelectorAll(".hyp").forEach((card) => {
-    const c = V[card.dataset.h], [cls, lab] = state(c), el = card.querySelector(".hyp-verdict");
+    const c = V[card.dataset.h], [cls, lab] = state(c, card.dataset.h), el = card.querySelector(".hyp-verdict");
     card.classList.toggle("supported", cls === "good"); card.classList.toggle("partial", cls === "warn");
     el.innerHTML = `<span class="badge ${cls}">${lab}</span>`;
   });

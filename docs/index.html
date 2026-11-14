@@ -20,6 +20,7 @@
     <a href="#method">Method</a>
     <a href="#explore">Map</a>
     <a href="#result">Result</a>
+    <a href="#local">Pattern</a>
     <a href="#verdict">Verdict</a>
     <a href="#limits">Limits</a>
   </div>
@@ -135,7 +136,7 @@
   <div class="wrap">
     <p class="kicker">Explore</p>
     <h2>Where the ground moved</h2>
-    <p class="intro">Red is subsidence, blue is uplift, relative to plateau bedrock. Pick a layer and click a zone to see its summer.</p>
+    <p class="intro">Red sinks, blue rises. <b>Repeats ★</b> (default) shows only the local motion that has the same sign in 2020 and 2025, relative to the surrounding ~2 km: the reproducible part of the signal. The S1 and NISAR layers are relative to plateau bedrock and include atmosphere. Click a zone to see its summer.</p>
   </div>
   <div class="map-shell">
     <div id="map" aria-label="Interactive map of displacement around Norilsk"></div>
@@ -187,6 +188,31 @@
     </div>
     <div class="table-toggle"><button id="show-table" aria-expanded="false">Show the numbers</button></div>
     <div id="fit-table" class="fit-table" hidden></div>
+  </div>
+</section>
+
+<!-- 5b LOCAL, REPRODUCIBLE -->
+<section class="section alt" id="local">
+  <div class="wrap">
+    <p class="kicker">The signal that survives</p>
+    <h2>The pattern that repeats, five years apart</h2>
+    <p class="intro">Water vapour moves the whole lowland by centimetres, but it is different on every pass and every summer. Ground that sinks because of what it is made of sinks in the same place every summer. So we stopped averaging big zones and compared each 30 m pixel with its own ~2 km neighbourhood, separately in 2020 (Sentinel-1A) and 2025 (Sentinel-1C), and asked whether the two maps agree.</p>
+    <div class="stat-row local-stats" id="local-stats"></div>
+    <div class="chart-grid">
+      <figure class="card">
+        <figcaption class="card-title">Wetlands sink along the thaw curve, both summers <span class="muted">· each line: one land-cover class vs its surroundings</span></figcaption>
+        <div id="chart-local-series" class="chart"></div>
+        <p class="card-note">Every date is high-passed (2 km), so shared atmosphere is gone. Wetland ground (ESA WorldCover class 90, 48 km²) follows the square root of the thawing degree-days, the shape Stefan's law predicts for a deepening thaw front, in both summers. Other ground types move by less than 2–3 mm.</p>
+      </figure>
+      <figure class="card">
+        <figcaption class="card-title">Who sinks more than the ground around it?</figcaption>
+        <div id="chart-local-lc" class="chart"></div>
+        <p class="card-note">Wetlands are the only class that sinks relative to its surroundings, in both summers. Built-up ground, bare rock and forest sink <em>less</em> than the ground around them.</p>
+      </figure>
+    </div>
+    <h3 class="sub">Industrial sites: the same answer, site by site</h3>
+    <p>For each OpenStreetMap industrial site, quarry and landfill we compared the inside with a ring around it. The sites that behave the same way in both summers are mostly the big plants, and they sink <strong>less</strong> than their surroundings, TPP-3 included. Only a few small sites and the landfills sink more.</p>
+    <div class="fit-table" id="local-fac"></div>
   </div>
 </section>
 

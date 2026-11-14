@@ -90,6 +90,7 @@ python 03_nisar.py download --match _111_A_037_ --match SH_20260621T --max 1   #
 | 10 | `10_nisar.py` | NISAR LOS per pair, asc/desc -> vertical + east |
 | 11 | `11_analysis.py` | zone x date table, sqrt(TDD) fits, comparisons, figures |
 | 12 | `12_export_web.py` | `outputs/web/`: COGs (EPSG:4326), zones.geojson, CSV, data contract |
+| 14 | `14_local_signal.py` | local (2 km high-pass) seasonal maps, 2020 vs 2025 reproducibility, land cover, OSM sites |
 | 13 | `13_build_site.py` | `docs/data/`: website overlays (WebP), site.json, verdict |
 
 MintPy was not used for v0: a small least-squares SBAS is enough for

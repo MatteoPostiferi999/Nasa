@@ -14,6 +14,7 @@ fi
 $PY 09_timeseries.py --years 2020 2025
 $PY 10_nisar.py
 $PY 11_analysis.py
+$PY 14_local_signal.py
 $PY 12_export_web.py
 if [[ "${1:-}" == "--synthetic" ]]; then
   $PY tests/check_synthetic.py

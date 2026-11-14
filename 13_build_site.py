@@ -82,6 +82,43 @@ def climate_block():
     return out
 
 
+FACILITY_EN = {
+    "Надеждинский металлургический завод": "Nadezhda Metallurgical Plant",
+    "Норильская ТЭЦ-3": "TPP-3 power plant (2020 spill)",
+    "Норильская ТЭЦ-2": "TPP-2 power plant",
+    "Кайерканский угольный разрез": "Kayerkan open-pit coal mine",
+    "Норильскгеология": "Norilskgeologiya base",
+    "ВС-1, 2, 4": "Ventilation shafts VS-1, 2, 4",
+    "ВС-5, ВС-6": "Ventilation shafts VS-5, 6",
+    "Вентиляционный ствол рудника Маяк": "Mayak mine ventilation shaft",
+    "ЮЗВС": "South-west ventilation shaft",
+    "Талнахская обогатительная фабрика": "Talnakh concentrator",
+    "Медный завод": "Copper plant", "Никелевый завод": "Nickel plant",
+    "Норильская нефтебаза": "Norilsk oil depot",
+}
+LU_EN = {"industrial": "industrial site", "landfill": "landfill / tailings", "quarry": "quarry"}
+
+
+def local_block():
+    """Step 14 outputs: reproducibility, land cover, facilities, hotspots."""
+    f = OUTPUTS / "local_meta.json"
+    if not f.exists():
+        return None
+    meta = json.loads(f.read_text())
+    lc = pd.read_csv(OUTPUTS / "local_landcover.csv")
+    fac = pd.read_csv(OUTPUTS / "local_facilities.csv")
+    fac["label"] = [FACILITY_EN.get(n, n) if isinstance(n, str) else f"Unnamed {LU_EN[lu]}"
+                    for n, lu in zip(fac["name"], fac["landuse"])]
+    hot = pd.read_csv(OUTPUTS / "local_hotspots.csv")
+    clean = lambda df: df.round(3).replace({np.nan: None}).to_dict("records")
+    by_lu = fac.groupby("landuse")[["d_2020", "d_2025"]].mean().round(2)
+    return {**meta, "landcover": clean(lc), "facilities": clean(fac[fac.persistent]),
+            "facilities_all_n": int(len(fac)),
+            "facility_r": round(float(fac[["d_2020", "d_2025"]].corr().iloc[0, 1]), 3),
+            "facilities_by_landuse": by_lu.reset_index().to_dict("records"),
+            "hotspots": clean(hot.head(25))}
+
+
 ABS_SE_USABLE = 0.25   # 2*se_b below 0.5 mm/sqrt(degC d): absolute slope is informative
 
 
@@ -163,6 +200,15 @@ def main():
                     **overlay(f, f"nisar_{win}_{comp}", 20.0),
                     "label": f"NISAR {win} summer 2026, {comp}",
                     "detail": "12-day L-band pair, asc 111 + desc 6"}
+    for name, lim, label, detail in [
+            ("local_persistent", 15.0, "Repeats in both summers",
+             "local seasonal motion vs ~2 km surroundings, mean of 2020 and 2025 where both agree in sign"),
+            ("local_2020", 15.0, "Local seasonal 2020", "vs ~2 km surroundings, sqrt(TDD) fit"),
+            ("local_2025", 15.0, "Local seasonal 2025", "vs ~2 km surroundings, sqrt(TDD) fit")]:
+        f = DIRS["ts"] / f"{name}.tif"
+        if f.exists():
+            site["overlays"][name] = {**overlay(f, name, lim, band=1), "label": label, "detail": detail}
+    site["local"] = local_block()
     nm = DIRS["ts"] / "nisar_meta.json"
     site["nisar"] = json.loads(nm.read_text()) if nm.exists() else None
 
@@ -180,6 +226,13 @@ def main():
     site["gap"] = (pd.read_csv(gap_csv).round(3).replace({np.nan: None}).to_dict("records")
                    if gap_csv.exists() else [])
     site["verdict"] = verdict(fits, comps)
+    L = site["local"]
+    if L and site["verdict"].get("status") == "ready":
+        wet = next((r for r in L["landcover"] if r["code"] == 90), None)
+        sig = lambda r, y: r[f"local_{y}_mm"] < -2 * r[f"se_{y}"]
+        site["verdict"]["climatic_local"] = bool(
+            wet and L["r_local"] > L["r_null_shift_mean"] + 5 * L["r_null_shift_std"]
+            and all(sig(wet, y) for y in (2020, 2025)))
     site["climate"] = climate_block()
     site["zone_climate"] = ZONE_CLIMATE
 

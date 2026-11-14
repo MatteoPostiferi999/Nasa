@@ -275,3 +275,10 @@ html { overflow-x: clip; }
 .tab-gap { flex: 1; }
 .tabs button.mode { font: 500 13px var(--body); border-radius: 999px; padding: 7px 12px; }
 .tabs button.mode[aria-pressed="true"] { background: #2a2f38; color: var(--ink); border-color: #4a515c; }
+
+/* local section */
+.local-stats { margin: 8px 0 40px; }
+.badge.sink { background: rgba(230,103,103,.16); color: #f0a0a0; }
+.badge.rise { background: rgba(57,135,229,.16); color: #9cc3f2; }
+#local-fac tr[data-lon] { cursor: pointer; }
+#local-fac tr[data-lon]:hover td { background: rgba(255,255,255,.03); }
