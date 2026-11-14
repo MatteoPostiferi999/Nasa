@@ -42,7 +42,7 @@ from shapely.geometry import MultiPoint, Point
 from shapely.ops import transform as sh_transform
 from shapely.ops import unary_union
 
-from config import DATA, DIRS, POINTS, UTM_EPSG
+from config import DATA, DIRS, OUTPUTS, POINTS, UTM_EPSG
 
 RES = 30.0
 PX_KM2 = (RES / 1000) ** 2
@@ -66,7 +66,7 @@ ZONES = {1: "reference", 2: "industrial", 3: "accident", 4: "urban",
          5: "control_NW", 6: "control_SE"}
 COLORS = {1: "red", 2: "orange", 3: "magenta", 4: "yellow", 5: "green", 6: "cyan"}
 ZDIR = DATA / "zones"
-OUT = Path(__file__).parent / "outputs"
+OUT = OUTPUTS
 
 
 def read(path):

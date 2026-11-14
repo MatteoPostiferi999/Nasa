@@ -1,4 +1,5 @@
 """Shared settings: study area, points of interest, periods, output folders."""
+import os
 from pathlib import Path
 
 # ---------------------------------------------------------------- study area
@@ -39,9 +40,19 @@ SUMMER = ("06-10", "10-05")
 NISAR_START = "2026-06-17"            # first PROVISIONAL (calibrated) products
 
 # ------------------------------------------------------------------ outputs
-DATA = Path(__file__).parent / "data"
+# NORILSK_DATA / NORILSK_OUT override the folders (used by the synthetic test).
+DATA = Path(os.environ.get("NORILSK_DATA", Path(__file__).parent / "data"))
+OUTPUTS = Path(os.environ.get("NORILSK_OUT", Path(__file__).parent / "outputs"))
 DIRS = {k: DATA / k for k in
-        ["s1", "hyp3", "nisar", "climate", "dem", "landcover", "osm", "cci"]}
+        ["s1", "hyp3", "nisar", "climate", "dem", "landcover", "osm", "cci",
+         "zones", "ts"]}
+
+# Radar wavelengths (m). NISAR is read from the file when available.
+S1_WAVELENGTH = 0.05546576
+# Zone -> ERA5-Land point used for its TDD.
+ZONE_CLIMATE = {"reference": "plateau_reference", "industrial": "norilsk_centre",
+                "accident": "norilsk_centre", "urban": "norilsk_centre",
+                "control_NW": "control_NW", "control_SE": "control_SE"}
 for d in DIRS.values():
     d.mkdir(parents=True, exist_ok=True)
 
