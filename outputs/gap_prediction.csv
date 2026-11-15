@@ -1,0 +1,31 @@
+zone,year,predicted_seasonal_mm,b_used,type,loso_b_pred,b_obs
+accident,2022,9.678,0.367,PREDICTION (not measured),,
+accident,2023,10.005,0.367,PREDICTION (not measured),,
+accident,2024,10.924,0.367,PREDICTION (not measured),,
+accident,2020,,,leave-one-summer-out check,0.002,0.731
+accident,2025,,,leave-one-summer-out check,0.731,0.002
+control_NW,2022,8.385,0.322,PREDICTION (not measured),,
+control_NW,2023,8.549,0.322,PREDICTION (not measured),,
+control_NW,2024,9.456,0.322,PREDICTION (not measured),,
+control_NW,2020,,,leave-one-summer-out check,0.025,0.619
+control_NW,2025,,,leave-one-summer-out check,0.619,0.025
+control_SE,2022,-5.292,-0.203,PREDICTION (not measured),,
+control_SE,2023,-5.555,-0.203,PREDICTION (not measured),,
+control_SE,2024,-6.067,-0.203,PREDICTION (not measured),,
+control_SE,2020,,,leave-one-summer-out check,0.349,-0.754
+control_SE,2025,,,leave-one-summer-out check,-0.754,0.349
+industrial,2022,4.535,0.172,PREDICTION (not measured),,
+industrial,2023,4.688,0.172,PREDICTION (not measured),,
+industrial,2024,5.118,0.172,PREDICTION (not measured),,
+industrial,2020,,,leave-one-summer-out check,-0.109,0.452
+industrial,2025,,,leave-one-summer-out check,0.452,-0.109
+reference,2022,-0.299,-0.012,PREDICTION (not measured),,
+reference,2023,-0.291,-0.012,PREDICTION (not measured),,
+reference,2024,-0.309,-0.012,PREDICTION (not measured),,
+reference,2020,,,leave-one-summer-out check,0.027,-0.051
+reference,2025,,,leave-one-summer-out check,-0.051,0.027
+urban,2022,5.975,0.226,PREDICTION (not measured),,
+urban,2023,6.176,0.226,PREDICTION (not measured),,
+urban,2024,6.744,0.226,PREDICTION (not measured),,
+urban,2020,,,leave-one-summer-out check,-0.081,0.534
+urban,2025,,,leave-one-summer-out check,0.534,-0.081

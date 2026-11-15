@@ -1,0 +1,270 @@
+{
+ "fits": [
+  {
+   "zone": "accident",
+   "summer": 2020,
+   "b": 0.7312,
+   "se_b": 0.3275,
+   "a": -14.4731,
+   "r2": 0.4539,
+   "n": 8,
+   "seasonal_disp_mm": 31.0671,
+   "tdd_end": 1687.1
+  },
+  {
+   "zone": "accident",
+   "summer": 2025,
+   "b": 0.0023,
+   "se_b": 0.2633,
+   "a": -2.7087,
+   "r2": 0.0,
+   "n": 7,
+   "seasonal_disp_mm": -10.1016,
+   "tdd_end": 1368.0
+  },
+  {
+   "zone": "control_NW",
+   "summer": 2020,
+   "b": 0.6188,
+   "se_b": 0.5836,
+   "a": -21.32,
+   "r2": 0.1578,
+   "n": 8,
+   "seasonal_disp_mm": 26.839,
+   "tdd_end": 1619.9
+  },
+  {
+   "zone": "control_NW",
+   "summer": 2025,
+   "b": 0.0245,
+   "se_b": 0.5502,
+   "a": 7.7249,
+   "r2": 0.0004,
+   "n": 7,
+   "seasonal_disp_mm": -6.9213,
+   "tdd_end": 1302.6
+  },
+  {
+   "zone": "control_SE",
+   "summer": 2020,
+   "b": -0.7543,
+   "se_b": 0.3523,
+   "a": 21.705,
+   "r2": 0.4331,
+   "n": 8,
+   "seasonal_disp_mm": -13.5028,
+   "tdd_end": 1637.1
+  },
+  {
+   "zone": "control_SE",
+   "summer": 2025,
+   "b": 0.3488,
+   "se_b": 0.3231,
+   "a": -8.9927,
+   "r2": 0.1891,
+   "n": 7,
+   "seasonal_disp_mm": -0.7392,
+   "tdd_end": 1338.3
+  },
+  {
+   "zone": "industrial",
+   "summer": 2020,
+   "b": 0.4522,
+   "se_b": 0.2509,
+   "a": -6.8653,
+   "r2": 0.3513,
+   "n": 8,
+   "seasonal_disp_mm": 20.3993,
+   "tdd_end": 1687.1
+  },
+  {
+   "zone": "industrial",
+   "summer": 2025,
+   "b": -0.1085,
+   "se_b": 0.3042,
+   "a": -1.2038,
+   "r2": 0.0248,
+   "n": 7,
+   "seasonal_disp_mm": -14.4675,
+   "tdd_end": 1368.0
+  },
+  {
+   "zone": "reference",
+   "summer": 2020,
+   "b": -0.0507,
+   "se_b": 0.0308,
+   "a": -0.4834,
+   "r2": 0.3108,
+   "n": 8,
+   "seasonal_disp_mm": -1.9652,
+   "tdd_end": 1127.3
+  },
+  {
+   "zone": "reference",
+   "summer": 2025,
+   "b": 0.027,
+   "se_b": 0.0269,
+   "a": -0.0661,
+   "r2": 0.1676,
+   "n": 7,
+   "seasonal_disp_mm": 0.2377,
+   "tdd_end": 967.2
+  },
+  {
+   "zone": "urban",
+   "summer": 2020,
+   "b": 0.5337,
+   "se_b": 0.3036,
+   "a": -8.1417,
+   "r2": 0.34,
+   "n": 8,
+   "seasonal_disp_mm": 19.0513,
+   "tdd_end": 1687.1
+  },
+  {
+   "zone": "urban",
+   "summer": 2025,
+   "b": -0.0809,
+   "se_b": 0.3856,
+   "a": -0.2551,
+   "r2": 0.0087,
+   "n": 7,
+   "seasonal_disp_mm": -15.702,
+   "tdd_end": 1368.0
+  }
+ ],
+ "comparisons": [
+  {
+   "summer": 2020,
+   "zone_a": "industrial",
+   "zone_b": "control_NW",
+   "diff_b": -0.1595,
+   "se": 0.4416,
+   "z": -0.3612,
+   "r2": 0.0213,
+   "n": 8,
+   "seasonal_diff_mm": -6.4397
+  },
+  {
+   "summer": 2020,
+   "zone_a": "industrial",
+   "zone_b": "control_SE",
+   "diff_b": 1.2059,
+   "se": 0.448,
+   "z": 2.6917,
+   "r2": 0.547,
+   "n": 8,
+   "seasonal_diff_mm": 33.9021
+  },
+  {
+   "summer": 2020,
+   "zone_a": "industrial",
+   "zone_b": "controls",
+   "diff_b": 0.5249,
+   "se": 0.2316,
+   "z": 2.2663,
+   "r2": 0.4612,
+   "n": 8,
+   "seasonal_diff_mm": 13.7312
+  },
+  {
+   "summer": 2020,
+   "zone_a": "accident",
+   "zone_b": "controls",
+   "diff_b": 0.8054,
+   "se": 0.2832,
+   "z": 2.8435,
+   "r2": 0.574,
+   "n": 8,
+   "seasonal_diff_mm": 24.399
+  },
+  {
+   "summer": 2020,
+   "zone_a": "urban",
+   "zone_b": "controls",
+   "diff_b": 0.607,
+   "se": 0.3399,
+   "z": 1.7861,
+   "r2": 0.3471,
+   "n": 8,
+   "seasonal_diff_mm": 12.3832
+  },
+  {
+   "summer": 2020,
+   "zone_a": "control_NW",
+   "zone_b": "control_SE",
+   "diff_b": 1.3753,
+   "se": 0.7636,
+   "z": 1.8011,
+   "r2": 0.3509,
+   "n": 8,
+   "seasonal_diff_mm": 40.3418
+  },
+  {
+   "summer": 2025,
+   "zone_a": "industrial",
+   "zone_b": "control_NW",
+   "diff_b": -0.1337,
+   "se": 0.4205,
+   "z": -0.3181,
+   "r2": 0.0198,
+   "n": 7,
+   "seasonal_diff_mm": -7.5463
+  },
+  {
+   "summer": 2025,
+   "zone_a": "industrial",
+   "zone_b": "control_SE",
+   "diff_b": -0.4605,
+   "se": 0.2124,
+   "z": -2.1685,
+   "r2": 0.4847,
+   "n": 7,
+   "seasonal_diff_mm": -13.7283
+  },
+  {
+   "summer": 2025,
+   "zone_a": "industrial",
+   "zone_b": "controls",
+   "diff_b": -0.2988,
+   "se": 0.2141,
+   "z": -1.3954,
+   "r2": 0.2803,
+   "n": 7,
+   "seasonal_diff_mm": -10.6373
+  },
+  {
+   "summer": 2025,
+   "zone_a": "accident",
+   "zone_b": "controls",
+   "diff_b": -0.1877,
+   "se": 0.3116,
+   "z": -0.6024,
+   "r2": 0.0677,
+   "n": 7,
+   "seasonal_diff_mm": -6.2713
+  },
+  {
+   "summer": 2025,
+   "zone_a": "urban",
+   "zone_b": "controls",
+   "diff_b": -0.2707,
+   "se": 0.1705,
+   "z": -1.5879,
+   "r2": 0.3352,
+   "n": 7,
+   "seasonal_diff_mm": -11.8718
+  },
+  {
+   "summer": 2025,
+   "zone_a": "control_NW",
+   "zone_b": "control_SE",
+   "diff_b": -0.3262,
+   "se": 0.5099,
+   "z": -0.6397,
+   "r2": 0.0757,
+   "n": 7,
+   "seasonal_diff_mm": -6.182
+  }
+ ]
+}

@@ -1,0 +1,161 @@
+lon,lat,area_km2,mean_mm,landcover
+87.9361,69.3879,0.373,-21.5,herbaceous wetland
+88.6377,69.2168,0.276,-20.4,herbaceous wetland
+87.7957,69.2686,0.271,-24.8,moss and lichen
+87.6701,69.2345,0.252,-15.9,moss and lichen
+87.9783,69.306,0.252,-20.9,moss and lichen
+87.7161,69.2752,0.223,-18.2,grassland
+88.6792,69.2162,0.22,-16.8,herbaceous wetland
+87.7906,69.3774,0.22,-19.7,moss and lichen
+87.8782,69.3927,0.202,-22.1,herbaceous wetland
+87.6588,69.4236,0.191,-16.4,grassland
+88.2242,69.5508,0.184,-23.0,herbaceous wetland
+87.7639,69.4464,0.183,-25.8,herbaceous wetland
+87.7747,69.4364,0.181,-18.5,herbaceous wetland
+87.7768,69.2495,0.175,-23.3,moss and lichen
+88.0173,69.3626,0.174,-32.4,herbaceous wetland
+88.3267,69.5412,0.173,-24.4,tree cover
+87.6666,69.4072,0.165,-19.3,grassland
+88.5102,69.243,0.147,-19.5,herbaceous wetland
+87.9592,69.3026,0.135,-19.7,moss and lichen
+88.2599,69.5465,0.133,-22.6,herbaceous wetland
+87.6532,69.2846,0.13,-25.4,grassland
+88.7465,69.1946,0.122,-22.0,0
+88.1956,69.4974,0.119,-17.0,herbaceous wetland
+87.6503,69.4322,0.116,-18.6,grassland
+88.4019,69.2588,0.116,-15.4,herbaceous wetland
+87.644,69.5297,0.112,-17.2,herbaceous wetland
+87.6397,69.4247,0.111,-16.0,grassland
+88.4765,69.2506,0.109,-20.0,moss and lichen
+88.2057,69.4949,0.108,-18.7,herbaceous wetland
+88.3139,69.5414,0.106,-20.0,bare / sparse
+88.33,69.3511,0.103,-15.1,herbaceous wetland
+87.6764,69.2851,0.1,-20.8,grassland
+87.6607,69.4327,0.095,-15.2,grassland
+88.4213,69.2538,0.093,-19.2,herbaceous wetland
+88.3898,69.2811,0.087,-18.2,herbaceous wetland
+88.3005,69.5442,0.081,-16.2,moss and lichen
+87.6269,69.5335,0.081,-15.7,herbaceous wetland
+88.2668,69.5821,0.079,-19.5,0
+87.6373,69.5499,0.075,-18.1,herbaceous wetland
+88.2417,69.5731,0.073,-20.6,grassland
+88.0259,69.3702,0.073,-25.7,herbaceous wetland
+88.6685,69.216,0.071,-17.2,herbaceous wetland
+88.7298,69.1942,0.068,-30.7,0
+87.6289,69.5291,0.068,-16.2,grassland
+88.2898,69.5429,0.067,-24.8,herbaceous wetland
+87.756,69.418,0.066,-19.3,herbaceous wetland
+87.8592,69.3936,0.066,-22.9,herbaceous wetland
+88.1898,69.4992,0.064,-19.2,herbaceous wetland
+88.7374,69.193,0.064,-23.2,0
+87.6444,69.4889,0.062,-19.0,herbaceous wetland
+87.6385,69.4291,0.062,-17.1,grassland
+87.991,69.3006,0.061,-21.9,moss and lichen
+87.8654,69.3942,0.061,-20.3,herbaceous wetland
+87.775,69.2649,0.061,-21.3,moss and lichen
+88.036,69.3612,0.06,-21.3,herbaceous wetland
+87.7174,69.4544,0.059,-19.3,herbaceous wetland
+87.6919,69.2259,0.055,-13.8,moss and lichen
+87.8156,69.4264,0.055,-21.5,herbaceous wetland
+88.0118,69.2782,0.054,-13.6,moss and lichen
+87.6814,69.3094,0.051,-19.9,moss and lichen
+88.2932,69.5469,0.05,-28.4,herbaceous wetland
+87.7781,69.2617,0.05,-17.7,moss and lichen
+87.6451,69.2015,0.05,-19.3,moss and lichen
+88.0062,69.3032,0.049,-19.9,moss and lichen
+87.6373,69.487,0.046,-17.8,herbaceous wetland
+87.5554,69.4901,0.046,-18.8,herbaceous wetland
+87.8881,69.3358,0.044,-15.1,moss and lichen
+87.6667,69.3089,0.044,-19.4,grassland
+88.0131,69.3724,0.043,-25.1,herbaceous wetland
+87.7948,69.4084,0.043,-19.9,herbaceous wetland
+87.9915,69.3501,0.042,-19.1,moss and lichen
+87.6585,69.2776,0.042,-21.8,moss and lichen
+87.6315,69.4277,0.042,-15.1,grassland
+87.7885,69.436,0.042,-15.8,herbaceous wetland
+87.995,69.305,0.041,-18.8,grassland
+88.323,69.4982,0.04,-20.0,tree cover
+87.6717,69.2816,0.038,-21.7,grassland
+87.6789,69.4907,0.037,-16.8,herbaceous wetland
+87.8084,69.4164,0.036,-21.6,herbaceous wetland
+87.9002,69.3903,0.036,-19.8,herbaceous wetland
+88.0169,69.3181,0.034,-15.7,moss and lichen
+87.8886,69.3184,0.034,-18.1,moss and lichen
+87.8009,69.3763,0.034,-18.0,moss and lichen
+87.7567,69.4133,0.034,-15.5,herbaceous wetland
+88.4629,69.2473,0.033,-15.0,moss and lichen
+88.3934,69.2859,0.032,-22.3,herbaceous wetland
+87.6782,69.2823,0.032,-19.9,grassland
+88.3468,69.2063,0.032,-18.4,moss and lichen
+88.3943,69.2548,0.032,-14.6,moss and lichen
+88.7775,69.1924,0.032,-14.6,0
+87.76,69.4202,0.032,-18.1,herbaceous wetland
+88.6151,69.2389,0.032,-17.3,herbaceous wetland
+88.3573,69.3485,0.032,-14.4,herbaceous wetland
+88.4884,69.2441,0.031,-15.9,herbaceous wetland
+88.7228,69.2084,0.03,-19.9,herbaceous wetland
+87.7524,69.4541,0.03,-22.3,herbaceous wetland
+88.6306,69.2118,0.03,-19.4,herbaceous wetland
+88.5592,69.2349,0.03,-18.0,herbaceous wetland
+87.7699,69.4434,0.029,-19.0,herbaceous wetland
+87.6672,69.4847,0.029,-16.3,herbaceous wetland
+88.4619,69.4826,0.029,-15.6,grassland
+88.3539,69.5431,0.028,-13.4,bare / sparse
+87.6206,69.5294,0.028,-14.4,herbaceous wetland
+88.7291,69.2066,0.027,-24.5,herbaceous wetland
+88.2685,69.5468,0.026,-26.9,herbaceous wetland
+87.6612,69.2994,0.026,-25.4,moss and lichen
+87.6446,69.2812,0.026,-21.8,grassland
+87.7762,69.4438,0.026,-17.0,herbaceous wetland
+88.3919,69.5741,0.026,-24.1,grassland
+87.7669,69.409,0.026,-22.5,water edge
+88.3715,69.2861,0.026,-17.6,herbaceous wetland
+88.2806,69.3654,0.025,-16.8,herbaceous wetland
+87.5708,69.4622,0.025,-16.0,grassland
+87.7852,69.2491,0.024,-17.0,moss and lichen
+88.2582,69.5835,0.024,-22.8,0
+87.7952,69.4334,0.024,-12.8,herbaceous wetland
+88.3333,69.3481,0.023,-12.4,herbaceous wetland
+87.7715,69.2586,0.023,-22.9,grassland
+87.9908,69.3654,0.023,-23.5,moss and lichen
+88.2666,69.5447,0.022,-25.5,grassland
+87.6558,69.5476,0.022,-17.9,grassland
+87.6235,69.2798,0.022,-24.9,grassland
+87.8474,69.2907,0.022,-17.4,bare / sparse
+88.8766,69.5673,0.022,-14.4,moss and lichen
+87.627,69.4285,0.022,-13.7,moss and lichen
+88.336,69.2102,0.022,-17.0,moss and lichen
+87.6746,69.299,0.022,-16.3,grassland
+87.6846,69.2279,0.021,-16.0,moss and lichen
+87.632,69.5267,0.021,-18.2,grassland
+87.7575,69.4524,0.021,-17.0,herbaceous wetland
+88.3272,69.5425,0.021,-33.0,tree cover
+88.071,69.3124,0.021,-16.8,grassland
+87.8998,69.3138,0.021,-22.4,moss and lichen
+88.0193,69.3741,0.021,-17.9,herbaceous wetland
+87.5685,69.2631,0.021,-22.2,grassland
+87.8066,69.2644,0.021,-15.6,grassland
+88.6417,69.2109,0.02,-16.5,moss and lichen
+88.2339,69.5551,0.02,-25.2,herbaceous wetland
+88.274,69.5462,0.02,-36.2,grassland
+88.2407,69.5532,0.02,-21.1,herbaceous wetland
+87.674,69.4625,0.02,-18.6,grassland
+88.263,69.5842,0.02,-22.7,0
+87.9133,69.3179,0.02,-17.3,moss and lichen
+87.7316,69.4598,0.02,-17.0,herbaceous wetland
+87.9278,69.2931,0.02,-23.3,moss and lichen
+87.764,69.4136,0.02,-17.9,herbaceous wetland
+88.4269,69.2517,0.02,-15.3,moss and lichen
+87.9217,69.3916,0.02,-17.3,herbaceous wetland
+87.8903,69.2882,0.019,-17.7,grassland
+87.5883,69.4618,0.019,-20.8,herbaceous wetland
+87.6626,69.4858,0.019,-19.8,herbaceous wetland
+87.6627,69.2967,0.019,-21.2,moss and lichen
+88.0017,69.3051,0.019,-18.2,moss and lichen
+87.8512,69.393,0.019,-18.7,grassland
+87.8901,69.3337,0.019,-14.7,moss and lichen
+88.0761,69.2314,0.018,-15.4,moss and lichen
+88.6844,69.223,0.018,-14.7,herbaceous wetland
+88.5093,69.241,0.018,-21.0,herbaceous wetland
+87.6643,69.5151,0.018,-21.6,grassland
+88.3919,69.2523,0.018,-14.4,moss and lichen
